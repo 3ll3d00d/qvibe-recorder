@@ -544,7 +544,7 @@ class mpu6050(Accelerometer):
         """
         b = self.i2c_io.read_block(self.MPU6050_ADDRESS, self.MPU6050_RA_FIFO_COUNTH, 2)
         count = (b[0] << 8) + b[1]
-        logger.debug("FIFO Count: %d", count)
+        logger.info(f"FIFO Count: {count}")
         return count
 
     def get_data_from_fifo(self, bytes_to_read):

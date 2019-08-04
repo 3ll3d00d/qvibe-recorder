@@ -8,7 +8,7 @@ with open('LICENSE') as f:
 
 
 setup(name='qvibe-recorder',
-      version='0.0.1',
+      version='0.0.2',
       description='Bridges data to/from a mpu6050 to a tcp socket',
       long_description=readme,
       classifiers=[
