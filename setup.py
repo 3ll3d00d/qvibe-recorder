@@ -22,7 +22,7 @@ setup(name='qvibe-recorder',
       author='Matt Khan',
       author_email='mattkhan+qvibe-recorder@gmail.com',
       license=license,
-      packages=find_packages(exclude=('tests', 'docs')),
+      packages=find_packages(exclude=('test', 'docs')),
       entry_points={
           'console_scripts': [
               'qvibe-recorder = app:main',
