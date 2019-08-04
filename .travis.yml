@@ -11,6 +11,6 @@ before_install:
 install:
 - pipenv sync -d
 script:
-- PYTHONPATH=./qvibe-recorder pipenv run pytest --pyargs qvibe-recorder --cov=./qvibe-recorder
+- pipenv run pytest --pyargs qvibe --cov=./qvibe
 after_success:
 - bash <(curl -s https://codecov.io/bash)

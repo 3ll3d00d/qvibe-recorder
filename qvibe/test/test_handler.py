@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 
-from handler import DataHandler, AsyncHandler, CSVLogger
+from qvibe.handler import DataHandler, AsyncHandler, CSVLogger
 
 
 class MyHandler(DataHandler):

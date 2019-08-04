@@ -2,9 +2,9 @@ from random import randint
 
 import pytest
 
-from accelerometer import SAMPLE_IDX
-from i2cio import mockIO
-from mpu6050 import mpu6050
+from qvibe.accelerometer import SAMPLE_IDX
+from qvibe.i2cio import mockIO
+from qvibe.mpu6050 import mpu6050
 
 
 def test_default_state():
