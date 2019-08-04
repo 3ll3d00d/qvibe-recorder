@@ -2,7 +2,7 @@ import abc
 import logging
 import time
 
-from handler import Discard, ERROR
+from qvibe.handler import Discard, ERROR
 
 NAME = 'name'
 FS = 'fs'
@@ -15,7 +15,7 @@ GYRO_Y = 'gy_y'
 GYRO_Z = 'gy_z'
 TEMP = 'temp'
 
-logger = logging.getLogger('qvibe.' + __name__)
+logger = logging.getLogger(__name__)
 
 
 class Accelerometer:

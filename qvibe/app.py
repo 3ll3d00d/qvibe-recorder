@@ -4,15 +4,15 @@ import threading
 
 from twisted.internet.endpoints import TCP4ServerEndpoint
 
-from config import Config
-from handler import AsyncHandler
-from i2cio import WhiteNoiseProvider, mockIO, smbusIO
-from interface import CommandFactory
-from mpu6050 import mpu6050
+from qvibe.config import Config
+from qvibe.handler import AsyncHandler
+from qvibe.i2cio import WhiteNoiseProvider, mockIO, smbusIO
+from qvibe.interface import CommandFactory
+from qvibe.mpu6050 import mpu6050
 from twisted.internet import reactor
 
 
-logger = logging.getLogger('qvibe')
+logger = logging.getLogger(__name__)
 
 # register a thread dumper
 faulthandler.enable()
@@ -56,7 +56,7 @@ def create_device(device_cfg):
         raise ValueError(device_type + " is not a supported device")
 
 
-def main():
+def run(args=None):
     """ The main routine. """
     cfg = Config()
     cfg.configure_logger()
@@ -68,4 +68,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run()

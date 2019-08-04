@@ -5,7 +5,7 @@ from os import environ, path
 
 import yaml
 
-logger = logging.getLogger('qvibe')
+logger = logging.getLogger(__name__)
 
 DEFAULT_CONFIG = {
     'port': 10002,

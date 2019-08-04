@@ -23,10 +23,9 @@ setup(name='qvibe-recorder',
       author_email='mattkhan+qvibe-recorder@gmail.com',
       license=license,
       packages=find_packages(exclude=('test', 'docs')),
-      package_dir={'': 'qvibe-recorder'},
       entry_points={
           'console_scripts': [
-              'qvibe-recorder = app:main',
+              'qvibe-recorder = qvibe.app:run',
           ],
       },
       install_requires=[

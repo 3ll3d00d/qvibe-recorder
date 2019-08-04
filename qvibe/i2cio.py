@@ -1,7 +1,7 @@
 import abc
 from queue import Queue
 
-from mpu6050 import mpu6050
+from qvibe.mpu6050 import mpu6050
 
 
 class i2cIO(object):

@@ -5,7 +5,7 @@ import os
 import threading
 from queue import Queue, Empty
 
-logger = logging.getLogger('qvibe.' + __name__)
+logger = logging.getLogger(__name__)
 
 ERROR = 'ERROR'
 

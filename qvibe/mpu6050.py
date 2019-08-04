@@ -4,7 +4,7 @@ import struct
 from _ctypes import ArgumentError
 from time import sleep, time
 
-from accelerometer import Accelerometer, ACCEL_X, ACCEL_Y, ACCEL_Z, GYRO_X, GYRO_Y, GYRO_Z, TEMP, SAMPLE_IDX, FS, NAME
+from qvibe.accelerometer import Accelerometer, ACCEL_X, ACCEL_Y, ACCEL_Z, GYRO_X, GYRO_Y, GYRO_Z, TEMP, SAMPLE_IDX, FS, NAME
 
 SENSOR_SCALE_FACTOR = 32768.0
 DEFAULT_GYRO_SENSITIVITY = 500.0
@@ -12,7 +12,7 @@ DEFAULT_ACCELEROMETER_SENSITIVITY = 2.0
 DEFAULT_TEMPERATURE_GAIN = 1.0 / 340.0
 DEFAULT_TEMPERATURE_OFFSET = 36.53
 
-logger = logging.getLogger('qvibe.' + __name__)
+logger = logging.getLogger(__name__)
 
 
 class mpu6050(Accelerometer):

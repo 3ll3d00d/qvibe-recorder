@@ -5,9 +5,9 @@ from enum import Enum
 from twisted.internet.protocol import Factory, connectionDone
 from twisted.protocols.basic import LineReceiver
 
-from handler import DataHandler, ERROR
+from qvibe.handler import DataHandler, ERROR
 
-logger = logging.getLogger('qvibe.' + __name__)
+logger = logging.getLogger(__name__)
 
 
 class Command(Enum):
