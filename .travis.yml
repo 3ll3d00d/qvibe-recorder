@@ -7,6 +7,8 @@ python:
 before_install:
 - pip install pipenv
 install:
-- pipenv sync
+- pipenv sync -d
+script:
+- pipenv run pytest
 after_success:
 - bash <(curl -s https://codecov.io/bash)
