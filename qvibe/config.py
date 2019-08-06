@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG = {
     'port': 10002,
     'debugLogging': False,
+    'samplesPerBatch': 8,
     'accelerometers': [
         {
             'name': 'mpu6050',

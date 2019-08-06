@@ -48,7 +48,9 @@ def create_device(device_cfg):
         else:
             raise ValueError(io_cfg['type'] + " is not a supported io provider")
         logger.warning(f"Loading mpu6050 {name}/{fs}")
-        mpu = mpu6050(io, name=name, fs=fs, data_handler=AsyncHandler(), self_test=True)
+        samples_per_batch = int(device_cfg['samplesPerBatch']) if 'samplesPerBatch' in device_cfg else None
+        mpu = mpu6050(io, name=name, fs=fs, data_handler=AsyncHandler(), self_test=True,
+                      samples_per_batch=samples_per_batch)
         worker = threading.Thread(target=mpu.run, daemon=True)
         worker.start()
         return mpu
