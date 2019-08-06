@@ -5,7 +5,7 @@ from enum import Enum
 from twisted.internet.protocol import Factory, connectionDone
 from twisted.protocols.basic import LineReceiver
 
-from qvibe.handler import DataHandler, ERROR
+from qvibe.handler import DataHandler
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,8 @@ class SocketHandler(DataHandler):
 
     def handle(self, data):
         try:
-            self.protocol.sendLine(json.dumps(data).encode())
+            elements = '|'.join([json.dumps(d, separators=(',', ':')) for d in data])
+            self.protocol.sendLine(f"DAT|{elements}".encode())
         except:
             logger.exception(f"Unserialisable data type {data.__class__.__name__}")
 
@@ -56,7 +57,7 @@ class CommandProtocol(LineReceiver):
     def send_device_state(self, device_state):
         import json
         y = json.dumps(device_state)
-        self.sendLine(f"{len(y)}|{y}".encode())
+        self.sendLine(f"DST|{y}".encode())
 
     def lineReceived(self, line):
         tokens = line.decode().split('|')
@@ -78,7 +79,7 @@ class CommandProtocol(LineReceiver):
             device_name = tokens[1]
             if device_name in self.devices:
                 import json
-                self.sendLine(json.dumps(self.devices[device_name].self_test_results).encode())
+                self.sendLine(f"STR|{json.dumps(self.devices[device_name].self_test_results)}".encode())
 
     def handle_set(self, tokens):
         import json
