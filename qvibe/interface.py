@@ -22,15 +22,10 @@ class SocketHandler(DataHandler):
         self.protocol = protocol
 
     def handle(self, data):
-        for datum in data:
-            if isinstance(datum, dict):
-                self.protocol.sendLine(json.dumps(datum).encode())
-            elif isinstance(datum, list):
-                self.protocol.sendLine(json.dumps(datum).encode())
-            elif datum == ERROR:
-                self.protocol.sendLine(ERROR.encode())
-            else:
-                logger.error(f"Unknown data type {datum.__class__.__name__}")
+        try:
+            self.protocol.sendLine(json.dumps(data).encode())
+        except:
+            logger.exception(f"Unserialisable data type {data.__class__.__name__}")
 
     def on_init_fail(self, event_time, message):
         pass

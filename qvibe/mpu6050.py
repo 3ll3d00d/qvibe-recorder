@@ -4,7 +4,8 @@ import struct
 from _ctypes import ArgumentError
 from time import sleep, time
 
-from qvibe.accelerometer import Accelerometer, ACCEL_X, ACCEL_Y, ACCEL_Z, GYRO_X, GYRO_Y, GYRO_Z, TEMP, SAMPLE_IDX, FS, NAME
+from qvibe.accelerometer import Accelerometer, ACCEL_X, ACCEL_Y, ACCEL_Z, GYRO_X, GYRO_Y, GYRO_Z, TEMP, SAMPLE_IDX, FS,\
+    NAME, ZERO_TIME
 
 SENSOR_SCALE_FACTOR = 32768.0
 DEFAULT_GYRO_SENSITIVITY = 500.0
@@ -261,6 +262,7 @@ class mpu6050(Accelerometer):
         self._gyro_factor = self.gyro_sensitivity / SENSOR_SCALE_FACTOR
         self.i2c_io = i2c_io
         self.__sample_idx = 0
+        self.__time_zero = 0
         self.do_init()
         if self_test is True:
             passed, results = self.perform_self_test()
@@ -269,6 +271,20 @@ class mpu6050(Accelerometer):
             results = {}
         self.__self_tested = passed
         self.__self_test_results = results
+
+    @property
+    def sample_idx(self):
+        return self.__sample_idx
+
+    @sample_idx.setter
+    def sample_idx(self, idx):
+        self.__sample_idx = idx
+        if idx == 0:
+            self.__time_zero = time()
+
+    @property
+    def time_zero(self):
+        return self.__time_zero
 
     @property
     def self_test_results(self):
@@ -585,12 +601,12 @@ class mpu6050(Accelerometer):
             logger.debug("Start sample loop [available: %d , required: %d]", fifo_bytes_available, self.sample_size_bytes)
             if interrupt & 0x10:
                 logger.error("FIFO OVERFLOW, RESETTING [available: %d , interrupt: %d]", fifo_bytes_available, interrupt)
-                self.__sample_idx = 0
+                self.sample_idx = -1
                 self.reset_fifo()
                 fifo_was_reset = True
             elif fifo_bytes_available == 1024:
                 logger.error("FIFO FULL, RESETTING [available: %d , interrupt: %d]", fifo_bytes_available, interrupt)
-                self.__sample_idx = 0
+                self.sample_idx = -1
                 self.reset_fifo()
                 fifo_was_reset = True
             elif interrupt & 0x02 or interrupt & 0x01:
@@ -633,6 +649,7 @@ class mpu6050(Accelerometer):
         """
         unpacks a single sample of data (where sample length is based on the currently enabled sensors).
         :param raw_data: the data to convert
+        :param fifo_bytes_available: the bytes left on the FIFO, allows estimation of the actual sample time.
         :return: a converted data set.
         """
         length = len(raw_data)
@@ -643,7 +660,9 @@ class mpu6050(Accelerometer):
         mpu_6050 = collections.OrderedDict()
         mpu_6050[NAME] = self.name
         mpu_6050[FS] = self.fs
-        mpu_6050[SAMPLE_IDX] = self.__sample_idx
+        self.sample_idx = self.sample_idx + 1
+        mpu_6050[SAMPLE_IDX] = self.sample_idx
+        mpu_6050[ZERO_TIME] = self.time_zero
         sensor_idx = 0
         if self.is_accelerometer_enabled():
             mpu_6050[ACCEL_X] = unpacked[sensor_idx] * self._acceleration_factor
@@ -665,7 +684,6 @@ class mpu6050(Accelerometer):
             mpu_6050[GYRO_Z] = unpacked[sensor_idx] * self._gyro_factor
             sensor_idx += 1
         # logger.debug("<< unpacked sample length %d into vals size %d", length, len(output))
-        self.__sample_idx += 1
         return mpu_6050
 
     def perform_self_test(self):

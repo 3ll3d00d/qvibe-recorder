@@ -1,8 +1,5 @@
 from random import randint
 
-import pytest
-
-from qvibe.accelerometer import SAMPLE_IDX
 from qvibe.i2cio import mockIO
 from qvibe.mpu6050 import mpu6050
 

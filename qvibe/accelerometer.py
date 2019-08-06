@@ -7,6 +7,7 @@ from qvibe.handler import Discard, ERROR
 NAME = 'name'
 FS = 'fs'
 SAMPLE_IDX = 'idx'
+ZERO_TIME = 'zt'
 ACCEL_X = 'ac_x'
 ACCEL_Y = 'ac_y'
 ACCEL_Z = 'ac_z'
