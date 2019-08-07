@@ -23,8 +23,7 @@ class SocketHandler(DataHandler):
 
     def handle(self, data):
         try:
-            elements = '|'.join([json.dumps(d, separators=(',', ':')) for d in data])
-            self.protocol.sendLine(f"DAT|{elements}".encode())
+            self.protocol.sendLine(f"DAT|{'|'.join(['#'.join([str(f) for f in d]) for d in data])}".encode())
         except:
             logger.exception(f"Unserialisable data type {data.__class__.__name__}")
 
@@ -84,10 +83,9 @@ class CommandProtocol(LineReceiver):
     def handle_set(self, tokens):
         import json
         target_state = json.loads(tokens[1])
-        if 'name' in target_state and target_state['name'] in self.devices:
-            device = self.devices[target_state['name']]
+        for device in self.devices.values():
             device.state = target_state
-            self.send_device_state(device.state)
+        self.send_all_device_states()
 
     def handle_get(self, tokens):
         if len(tokens) == 1:

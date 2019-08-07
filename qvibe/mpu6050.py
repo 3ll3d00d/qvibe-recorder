@@ -656,35 +656,36 @@ class mpu6050(Accelerometer):
         # TODO error if not multiple of 2
         # logger.debug(">> unpacking sample %d length %d", self._sampleIdx, length)
         unpacked = struct.unpack(">" + ('h' * (length // 2)), memoryview(bytearray(raw_data)).tobytes())
-        # store the data in a dictionary
-        mpu_6050 = collections.OrderedDict()
-        mpu_6050[NAME] = self.name
-        mpu_6050[FS] = self.fs
+        # store the data in an array
+        data = [None] * (2
+                         + (3 if self.is_accelerometer_enabled() else 0)
+                         + (1 if self.is_temperature_enabled() else 0)
+                         + (3 if self.is_gyro_enabled() else 0))
         self.sample_idx = self.sample_idx + 1
-        mpu_6050[SAMPLE_IDX] = self.sample_idx
-        mpu_6050[ZERO_TIME] = self.time_zero
+        data[0] = self.sample_idx
+        data[1] = self.time_zero
         sensor_idx = 0
         if self.is_accelerometer_enabled():
-            mpu_6050[ACCEL_X] = unpacked[sensor_idx] * self._acceleration_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._acceleration_factor
             sensor_idx += 1
-            mpu_6050[ACCEL_Y] = unpacked[sensor_idx] * self._acceleration_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._acceleration_factor
             sensor_idx += 1
-            mpu_6050[ACCEL_Z] = unpacked[sensor_idx] * self._acceleration_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._acceleration_factor
             sensor_idx += 1
 
         if self.is_temperature_enabled():
-            mpu_6050[TEMP] = unpacked[sensor_idx] * self._temperatureGain + self._temperatureOffset
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._temperatureGain + self._temperatureOffset
             sensor_idx += 1
 
         if self.is_gyro_enabled():
-            mpu_6050[GYRO_X] = unpacked[sensor_idx] * self._gyro_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._gyro_factor
             sensor_idx += 1
-            mpu_6050[GYRO_Y] = unpacked[sensor_idx] * self._gyro_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._gyro_factor
             sensor_idx += 1
-            mpu_6050[GYRO_Z] = unpacked[sensor_idx] * self._gyro_factor
+            data[sensor_idx + 2] = unpacked[sensor_idx] * self._gyro_factor
             sensor_idx += 1
         # logger.debug("<< unpacked sample length %d into vals size %d", length, len(output))
-        return mpu_6050
+        return data
 
     def perform_self_test(self):
         """
