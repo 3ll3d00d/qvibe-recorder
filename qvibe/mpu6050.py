@@ -261,7 +261,7 @@ class mpu6050(Accelerometer):
         self._acceleration_factor = self.accelerometer_sensitivity / SENSOR_SCALE_FACTOR
         self._gyro_factor = self.gyro_sensitivity / SENSOR_SCALE_FACTOR
         self.i2c_io = i2c_io
-        self.__sample_idx = 0
+        self.__sample_idx = -1
         self.__time_zero = 0
         self.do_init()
         if self_test is True:

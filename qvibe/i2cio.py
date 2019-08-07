@@ -107,6 +107,8 @@ class WhiteNoiseProvider(MockIoDataProvider):
             self.add_value(bytes, 'x')
             self.add_value(bytes, 'y')
             self.add_value(bytes, 'z')
+            from time import sleep
+            sleep(0.002)
             return bytes
         else:
             if length is None:
