@@ -263,6 +263,7 @@ class mpu6050(Accelerometer):
         self.i2c_io = i2c_io
         self.__sample_idx = -1
         self.__time_zero = 0
+        self.__fifo_reads = 0
         self.do_init()
         if self_test is True:
             passed, results = self.perform_self_test()
@@ -561,7 +562,13 @@ class mpu6050(Accelerometer):
         """
         b = self.i2c_io.read_block(self.MPU6050_ADDRESS, self.MPU6050_RA_FIFO_COUNTH, 2)
         count = (b[0] << 8) + b[1]
-        logger.info(f"FIFO Count: {count}")
+        if count > 64:
+            logger.warning(f"FIFO Count: {count}")
+            self.__fifo_reads = 0
+        else:
+            self.__fifo_reads += 1
+            if self.__fifo_reads % 100 == 0:
+                logger.info(f"100 consecutive fifo reads with less than 64 bytes")
         return count
 
     def get_data_from_fifo(self, bytes_to_read):

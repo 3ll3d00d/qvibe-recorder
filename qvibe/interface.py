@@ -23,6 +23,7 @@ class SocketHandler(DataHandler):
 
     def handle(self, data):
         try:
+            logger.info(f"Sending ")
             self.protocol.sendLine(f"DAT|{'|'.join(['#'.join([str(f) for f in d]) for d in data])}".encode())
         except:
             logger.exception(f"Unserialisable data type {data.__class__.__name__}")
