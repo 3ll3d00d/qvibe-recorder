@@ -313,6 +313,7 @@ class mpu6050(Accelerometer):
         if 'sPB' in target_state:
             if target_state['sPB'] != self.samples_per_batch:
                 self.samples_per_batch = target_state['sPB']
+                logger.warning(f"Set samples per batch = {self.samples_per_batch}")
 
         if 'aOn' in target_state:
             if target_state['aOn'] and not self.is_accelerometer_enabled():
@@ -373,7 +374,7 @@ class mpu6050(Accelerometer):
         performs initialisation of the device
         :return:
         """
-        logger.debug("Initialising device")
+        logger.info("Initialising device")
         self.get_interrupt_status()
         self.set_accelerometer_sensitivity(self._acceleration_factor * 32768.0)
         self.set_gyro_sensitivity(self._gyro_factor * 32768.0)
@@ -388,7 +389,7 @@ class mpu6050(Accelerometer):
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_INT_ENABLE, 0x01)
         # enable the FIFO
         self.enable_fifo()
-        logger.debug("Initialised device")
+        logger.info("Initialised device")
 
     def is_accelerometer_enabled(self):
         """
@@ -402,7 +403,7 @@ class mpu6050(Accelerometer):
         Specifies the device should write acceleration values to the FIFO, is not applied until enableFIFO is called.
         :return:
         """
-        logger.debug("Enabling acceleration sensor")
+        logger.warning("Enabling acceleration sensor")
         self.fifo_sensor_mask |= self.enable_accelerometer_mask
         self._accel_enabled = True
         self._set_sample_size_bytes()
@@ -413,7 +414,7 @@ class mpu6050(Accelerometer):
         called.
         :return: 
         """
-        logger.debug("Disabling acceleration sensor")
+        logger.warning("Disabling acceleration sensor")
         self.fifo_sensor_mask &= ~self.enable_accelerometer_mask
         self._accel_enabled = False
         self._set_sample_size_bytes()
@@ -430,7 +431,7 @@ class mpu6050(Accelerometer):
         Specifies the device should write gyro values to the FIFO, is not applied until enableFIFO is called.
         :return: 
         """
-        logger.debug("Enabling gyro sensor")
+        logger.warning("Enabling gyro sensor")
         self.fifo_sensor_mask |= self.enableGyroMask
         self._gyro_enabled = True
         self._set_sample_size_bytes()
@@ -440,7 +441,7 @@ class mpu6050(Accelerometer):
         Specifies the device should NOT write gyro values to the FIFO, is not applied until enableFIFO is called.
         :return: 
         """
-        logger.debug("Disabling gyro sensor")
+        logger.warning("Disabling gyro sensor")
         self.fifo_sensor_mask &= ~self.enableGyroMask
         self._gyro_enabled = False
         self._set_sample_size_bytes()
@@ -457,7 +458,7 @@ class mpu6050(Accelerometer):
         Specifies the device should write temperature values to the FIFO, is not applied until enableFIFO is called.
         :return: 
         """
-        logger.debug("Enabling temperature sensor")
+        logger.warning("Enabling temperature sensor")
         self.fifo_sensor_mask |= self.enableTemperatureMask
         self._set_sample_size_bytes()
 
@@ -466,7 +467,7 @@ class mpu6050(Accelerometer):
         Specifies the device should NOT write temperature values to the FIFO, is not applied until enableFIFO is called.
         :return: 
         """
-        logger.debug("Disabling temperature sensor")
+        logger.warning("Disabling temperature sensor")
         self.fifo_sensor_mask &= ~self.enableTemperatureMask
         self._set_sample_size_bytes()
 
@@ -482,7 +483,7 @@ class mpu6050(Accelerometer):
                               {250: 0, 500: 8, 1000: 16, 2000: 24}[value])
             self._gyro_factor = value / 32768.0
             self.gyro_sensitivity = value
-            logger.debug("Set gyro sensitivity = %d", value)
+            logger.warning(f"Set gyro sensitivity = {value}")
         except KeyError:
             raise ArgumentError(value + " is not a valid sensitivity (250,500,1000,2000)")
 
@@ -504,7 +505,7 @@ class mpu6050(Accelerometer):
                               {2: 0, 4: 8, 8: 16, 16: 24}[value])
             self._acceleration_factor = value / 32768.0
             self.accelerometer_sensitivity = value
-            logger.debug("Set accelerometer sensitivity = %d", value)
+            logger.warning(f"Set accelerometer sensitivity = {value}")
         except KeyError:
             raise ArgumentError(value + " is not a valid sensitivity (2,4,8,18)")
 
@@ -519,14 +520,14 @@ class mpu6050(Accelerometer):
         sample_rate_denominator = int((8000 / min(target_fs, 1000)) - 1)
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_SMPLRT_DIV, sample_rate_denominator)
         self.fs = 8000.0 / (sample_rate_denominator + 1.0)
-        logger.debug("Set sample rate = %d", self.fs)
+        logger.warning(f"Set sample rate = {self.fs}")
 
     def reset_fifo(self):
         """
         Resets the FIFO by first disabling the FIFO then sending a FIFO_RESET and then re-enabling the FIFO.
         :return:
         """
-        logger.debug("Resetting FIFO")
+        logger.info("Resetting FIFO")
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_USER_CTRL, 0b00000000)
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_USER_CTRL, 0b00000100)
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_USER_CTRL, 0b01000000)
@@ -537,11 +538,11 @@ class mpu6050(Accelerometer):
         Enables the FIFO, resets it and then sets which values should be written to the FIFO.
         :return:
         """
-        logger.debug("Enabling FIFO")
+        logger.info("Enabling FIFO")
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_FIFO_EN, 0)
         self.reset_fifo()
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_FIFO_EN, self.fifo_sensor_mask)
-        logger.debug("Enabled FIFO")
+        logger.info("Enabled FIFO")
 
     def get_interrupt_status(self):
         """
@@ -695,7 +696,7 @@ class mpu6050(Accelerometer):
         dictionary: all underlying percentage deviations, +/-14% is a pass
         """
         try:
-            logger.debug(">> selfTest")
+            logger.info(">> selfTest")
             # enable self test on all axes and set range to +/-250
             self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_GYRO_CONFIG, 0b11100000)
             # enable self test on all axes and set range to +/-8g
@@ -741,11 +742,11 @@ class mpu6050(Accelerometer):
 
             passed = all(abs(v) < 14 for v in results.values())
             if passed:
-                logger.debug("self test passed")
+                logger.info("self test passed")
             else:
                 logger.error("SELF TEST FAILURE " + str(results))
             return passed, results
         finally:
             self.set_accelerometer_sensitivity(self.accelerometer_sensitivity)
             self.set_gyro_sensitivity(self.gyro_sensitivity)
-            logger.debug("<< selfTest")
+            logger.info("<< selfTest")
