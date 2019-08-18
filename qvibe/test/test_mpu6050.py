@@ -152,17 +152,11 @@ def test_readSingleBatchWithSixBytesAvailableOnEachRead():
     output = mpu.provide_data()
     assert output is not None
     assert len(output) == 125
-    output = __get_vals(output)
     assert all(len(i) == len(output[0]) for i in output)
     # check all actual values are identical (as a short cut for these are the same values as returned by the fifo)
-    assert all(x[0:2] == output[0][0:2] for x in output)
-    assert all(x[3:] == output[0][3:] for x in output)
+    assert all(x[1:] == output[0][1:] for x in output)
     assert fifoCounter == 125
     assert fifoReader == 125
-
-
-def __get_vals(output):
-    return [[v for k, v in o.items()] for o in output]
 
 
 def test_readSingleBatchInOneTripToFifo():
@@ -189,11 +183,9 @@ def test_readSingleBatchInOneTripToFifo():
     output = mpu.provide_data()
     assert output is not None
     assert len(output) == 125
-    output = __get_vals(output)
     assert all(len(i) == len(output[0]) for i in output)
     # check all actual values are identical (as a short cut for these are the same values as returned by the fifo)
-    assert all(x[0:2] == output[0][0:2] for x in output)
-    assert all(x[3:] == output[0][3:] for x in output)
+    assert all(x[1:] == output[0][1:] for x in output)
     assert fifoCounter == 1
     assert fifoReader == 25
 
@@ -221,11 +213,9 @@ def test_readSingleBatchWhenLastSizeHasSamplesRemaining():
     output = mpu.provide_data()
     assert output is not None
     assert len(output) == 125
-    output = __get_vals(output)
     assert all(len(i) == len(output[0]) for i in output)
     # check all actual values are identical (as a short cut for these are the same values as returned by the fifo)
-    assert all(x[0:2] == output[0][0:2] for x in output)
-    assert all(x[3:] == output[0][3:] for x in output)
+    assert all(x[1:] == output[0][1:] for x in output)
     assert fifoCounter == 63
     assert fifoReader == 63
 
@@ -256,11 +246,9 @@ def test_readSingleBatchWithFourteenBytesAvailableOnEachReadWhenAllSensorsAreAva
     output = mpu.provide_data()
     assert output is not None
     assert len(output) == 125
-    output = __get_vals(output)
     assert all(len(i) == len(output[0]) for i in output)
     # check all actual values are identical (as a short cut for these are the same values as returned by the fifo)
-    assert all(x[0:2] == output[0][0:2] for x in output)
-    assert all(x[3:] == output[0][3:] for x in output)
+    assert all(x[1:] == output[0][1:] for x in output)
     assert fifoCounter == 125
     assert fifoReader == 125
 
@@ -289,9 +277,7 @@ def test_readSingleBatchWithVaryingFifoSizes():
     output = mpu.provide_data()
     assert output is not None
     assert len(output) == 125
-    output = __get_vals(output)
     assert all(len(i) == len(output[0]) for i in output)
     # check all actual values are identical (as a short cut for these are the same values as returned by the fifo)
-    assert all(x[0:2] == output[0][0:2] for x in output)
-    assert all(x[3:] == output[0][3:] for x in output)
+    assert all(x[1:] == output[0][1:] for x in output)
     # fifo size is randomly generated so can't verify the number of times we read it
