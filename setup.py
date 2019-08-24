@@ -8,15 +8,12 @@ with open('LICENSE') as f:
 
 
 setup(name='qvibe-recorder',
-      version='0.0.2',
+      version='0.1.0',
       description='Bridges data to/from a mpu6050 to a tcp socket',
       long_description=readme,
       classifiers=[
-          'Development Status :: 3 - Alpha',
-          'Framework :: Flask',
           'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 3.7',
-          'Intended Audience :: End Users/Desktop'
+          'Programming Language :: Python :: 3.7'
       ],
       url='http://github.com/3ll3d00d/qvibe-recorder',
       author='Matt Khan',
@@ -39,5 +36,5 @@ setup(name='qvibe-recorder',
       tests_require=[
           'pytest'
       ],
-      include_package_data=True,
+      include_package_data=False,
       zip_safe=False)
