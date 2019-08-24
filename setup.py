@@ -22,7 +22,6 @@ setup(name='qvibe-recorder',
       url='http://github.com/3ll3d00d/qvibe-recorder',
       author='Matt Khan',
       author_email='mattkhan+qvibe-recorder@gmail.com',
-      license=license,
       packages=find_packages(exclude=('test', 'docs')),
       python_requires='>=3.7',
       entry_points={
