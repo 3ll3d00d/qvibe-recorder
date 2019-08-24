@@ -4,9 +4,6 @@ from setuptools import setup, find_packages
 with open('README.md') as f:
     readme = f.read()
 
-with open('LICENSE') as f:
-    license = f.read()
-
 version = os.environ.get('TRAVIS_TAG', '0.0.1-alpha.1+dirty')
 
 setup(name='qvibe-recorder',
@@ -22,6 +19,7 @@ setup(name='qvibe-recorder',
       url='http://github.com/3ll3d00d/qvibe-recorder',
       author='Matt Khan',
       author_email='mattkhan+qvibe-recorder@gmail.com',
+      license='MIT',
       packages=find_packages(exclude=('test', 'docs')),
       python_requires='>=3.7',
       entry_points={
