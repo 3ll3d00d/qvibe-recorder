@@ -1,6 +1,3 @@
-qvibe-recorder
-==============
-
 .. image:: https://travis-ci.org/3ll3d00d/qvibe-recorder.svg?branch=master
    :target: https://travis-ci.org/3ll3d00d/qvibe-recorder
    :alt: Continuous Integration

@@ -14,3 +14,7 @@ script:
 - pipenv run pytest --pyargs qvibe --cov=./qvibe
 after_success:
 - bash <(curl -s https://codecov.io/bash)
+# to upload
+# pipenv run python setup.py sdist bdist_wheel
+# pipenv run twine check dist/*
+# twine upload dist/*
