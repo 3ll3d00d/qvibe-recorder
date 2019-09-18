@@ -1,11 +1,10 @@
-import json
 import logging
 from enum import Enum
 
 from twisted.internet.protocol import Factory, connectionDone
 from twisted.protocols.basic import LineReceiver
 
-from qvibe.handler import DataHandler
+from qvibe.handler import DataHandler, ERROR
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +21,23 @@ class SocketHandler(DataHandler):
         self.protocol = protocol
 
     def handle(self, data):
-        try:
-            logger.info(f"Sending ")
-            self.protocol.sendLine(f"DAT|{'|'.join(['#'.join([str(f) for f in d]) for d in data])}".encode())
-        except:
-            logger.exception(f"Unserialisable data type {data.__class__.__name__}")
+        if data:
+            if data == ERROR:
+                self.protocol.sendLine(data)
+            else:
+                try:
+                    dat = '|'.join(['#'.join([str(f) for f in d]) for d in data])
+                    if len(dat) > 0:
+                        logger.info(f"Sending {len(data)} samples")
+                        self.protocol.sendLine(f"DAT|{dat}".encode())
+                    else:
+                        logger.error(f"Sending {ERROR}")
+                        self.protocol.sendLine(ERROR)
+                except:
+                    logger.exception(f"Unserialisable data type {data.__class__.__name__}")
+        else:
+            logger.error(f"Sending {ERROR}")
+            self.protocol.sendLine(ERROR)
 
     def on_init_fail(self, event_time, message):
         pass
