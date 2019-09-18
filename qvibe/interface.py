@@ -23,7 +23,7 @@ class SocketHandler(DataHandler):
     def handle(self, data):
         if data:
             if data == ERROR:
-                self.protocol.sendLine(data)
+                self.protocol.sendLine(data.encode())
             else:
                 try:
                     dat = '|'.join(['#'.join([str(f) for f in d]) for d in data])
@@ -32,12 +32,12 @@ class SocketHandler(DataHandler):
                         self.protocol.sendLine(f"DAT|{dat}".encode())
                     else:
                         logger.error(f"Sending {ERROR}")
-                        self.protocol.sendLine(ERROR)
+                        self.protocol.sendLine(ERROR.encode())
                 except:
                     logger.exception(f"Unserialisable data type {data.__class__.__name__}")
         else:
             logger.error(f"Sending {ERROR}")
-            self.protocol.sendLine(ERROR)
+            self.protocol.sendLine(ERROR.encode())
 
     def on_init_fail(self, event_time, message):
         pass
