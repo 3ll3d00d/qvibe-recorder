@@ -4,6 +4,7 @@ import threading
 
 from twisted.internet.endpoints import TCP4ServerEndpoint
 
+from i2cio import WavProvider
 from qvibe.config import Config
 from qvibe.handler import AsyncHandler
 from qvibe.i2cio import WhiteNoiseProvider, mockIO, smbusIO
@@ -35,11 +36,16 @@ def create_device(device_cfg):
         name = device_cfg.get('name', 'mpu6050')
         if io_cfg['type'] == 'mock':
             provider = io_cfg.get('provider')
-            if provider is not None and provider == 'white noise':
-                data_provider = WhiteNoiseProvider()
+            if provider is not None:
+                if provider == 'white noise':
+                    data_provider = WhiteNoiseProvider()
+                elif provider == 'dbl':
+                    data_provider = WavProvider(io_cfg.get('file'))
+                else:
+                    raise ValueError(provider + " is not a supported mock io data provider")
             else:
-                raise ValueError(provider + " is not a supported mock io data provider")
-            logger.warning("Loading mock data provider for mpu6050")
+                raise ValueError('No provider supplied for a mock io data provider')
+            logger.warning(f"Loading {provider} mock data provider for mpu6050")
             io = mockIO(data_provider=data_provider.provide)
         elif io_cfg['type'] == 'smbus':
             bus_id = io_cfg['busId']

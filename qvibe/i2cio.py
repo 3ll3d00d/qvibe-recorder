@@ -74,41 +74,27 @@ class mockIO(i2cIO):
 
 
 class MockIoDataProvider:
-    @abc.abstractmethod
-    def provide(self, register):
-        pass
 
-
-class WhiteNoiseProvider(MockIoDataProvider):
-    """
-    A mock io provider which yields white noise.
-    """
-
-    def __init__(self):
-        import random
-        self.samples = {
-            'x': [random.gauss(0, 0.25) for _ in range(0, 1000)],
-            'y': [random.gauss(0, 0.25) for _ in range(0, 1000)],
-            'z': [random.gauss(0, 0.25) for _ in range(0, 1000)]
-        }
+    def __init__(self, samples):
         self.idx = 0
+        self.samples = samples
 
     def provide(self, register, length=None):
         if register is mpu6050.MPU6050_RA_INT_STATUS:
             return 0x01
         elif register is mpu6050.MPU6050_RA_FIFO_COUNTH:
-            return [0b0000, 0b1100]
+            # always 36 bytes
+            return [0b00000000, 0b00100100]
         elif register is mpu6050.MPU6050_RA_FIFO_R_W:
+            to_read = length // 6
             bytes = bytearray()
-            self.add_value(bytes, 'x')
-            self.add_value(bytes, 'y')
-            self.add_value(bytes, 'z')
-            self.idx += 1
-            self.add_value(bytes, 'x')
-            self.add_value(bytes, 'y')
-            self.add_value(bytes, 'z')
+            for i in range(0, to_read):
+                self.add_value(bytes, 'x')
+                self.add_value(bytes, 'y')
+                self.add_value(bytes, 'z')
+                self.idx += 1
             from time import sleep
-            sleep(0.002)
+            sleep(0.002 * to_read)
             return bytes
         else:
             if length is None:
@@ -117,7 +103,9 @@ class WhiteNoiseProvider(MockIoDataProvider):
                 return [x.to_bytes(1, 'big') for x in range(length)]
 
     def add_value(self, bytes, key):
-        val = abs(int((self.samples[key][self.idx % 1000] * 32768)))
+        samples = self.samples[key]
+        sample_val = samples[self.idx % len(samples)]
+        val = self.convert_value(sample_val)
         try:
             b = bytearray(val.to_bytes(2, 'big'))
         except OverflowError:
@@ -125,6 +113,53 @@ class WhiteNoiseProvider(MockIoDataProvider):
             val = 0
             b = bytearray(val.to_bytes(2, 'big'))
         bytes.extend(b)
+
+    def convert_value(self, val):
+        i = int((val * 32768))
+        return i if i >= 0 else 65536 + i
+
+
+class ModulatedNoiseProvider(MockIoDataProvider):
+
+    def __init__(self):
+        import random
+        super().__init__({
+            'x': [random.gauss(0, 0.25) for _ in range(0, 1000)],
+            'y': [random.gauss(0, 0.25) for _ in range(0, 1000)],
+            'z': [random.gauss(0, 0.25) for _ in range(0, 1000)]
+        })
+
+
+class WhiteNoiseProvider(MockIoDataProvider):
+
+    def __init__(self):
+        import random
+        super().__init__({
+            'x': [random.gauss(0, 0.25) for _ in range(0, 1000)],
+            'y': [random.gauss(0, 0.25) for _ in range(0, 1000)],
+            'z': [random.gauss(0, 0.25) for _ in range(0, 1000)]
+        })
+
+
+class WavProvider(MockIoDataProvider):
+    '''
+    Reads data created from a wav file as per
+     f.write(struct.pack('d'*len(data), *data))
+    '''
+    def __init__(self, file):
+        import struct
+        import os
+        sz = os.stat(file).st_size
+        if sz % 8 != 0:
+            raise ValueError(f"File size is {sz}, can't be a dbl file")
+        with open(file, mode='rb') as f:
+            data = list(struct.unpack('d' * int(sz / 8), f.read(sz)))
+        if data is not None:
+            super().__init__({
+                'x': data,
+                'y': data,
+                'z': data
+            })
 
 
 class smbusIO(i2cIO):
