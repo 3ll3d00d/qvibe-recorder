@@ -13,6 +13,7 @@ class Command(Enum):
     GET = 1
     SET = 2
     STR = 3
+    CAL = 4
 
 
 class SocketHandler(DataHandler):
@@ -70,6 +71,14 @@ class CommandProtocol(LineReceiver):
         y = json.dumps(device_state)
         self.sendLine(f"DST|{y}".encode())
 
+    def send_all_device_calibrations(self):
+        self.send_device_state([d.calibrate() for d in self.devices.values()])
+
+    def send_device_calibration(self, calibration):
+        import json
+        y = json.dumps(calibration)
+        self.sendLine(f"CAL|{y}".encode())
+
     def lineReceived(self, line):
         tokens = line.decode().split('|')
         try:
@@ -80,6 +89,8 @@ class CommandProtocol(LineReceiver):
                 self.handle_set(tokens)
             elif cmd == Command.STR:
                 self.handle_str(tokens)
+            elif cmd == Command.CAL:
+                self.handle_cal(tokens)
         except KeyError as e:
             logger.info(f"Unknown command in {line}")
         except Exception as e:
@@ -106,6 +117,14 @@ class CommandProtocol(LineReceiver):
             device_name = tokens[1]
             if device_name in self.devices:
                 self.send_device_state(self.devices[device_name].state)
+
+    def handle_cal(self, tokens):
+        if len(tokens) == 1:
+            self.send_all_device_calibrations()
+        else:
+            device_name = tokens[1]
+            if device_name in self.devices:
+                self.send_device_calibration(self.devices[device_name].calibrate())
 
 
 class CommandFactory(Factory):
