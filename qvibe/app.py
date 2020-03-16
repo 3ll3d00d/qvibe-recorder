@@ -4,10 +4,9 @@ import threading
 
 from twisted.internet.endpoints import TCP4ServerEndpoint
 
-from i2cio import WavProvider
 from qvibe.config import Config
 from qvibe.handler import AsyncHandler
-from qvibe.i2cio import WhiteNoiseProvider, mockIO, smbusIO
+from qvibe.i2cio import WhiteNoiseProvider, mockIO, smbusIO, WavProvider
 from qvibe.interface import CommandFactory
 from qvibe.mpu6050 import mpu6050
 from twisted.internet import reactor
