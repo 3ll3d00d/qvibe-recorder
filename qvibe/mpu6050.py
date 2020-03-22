@@ -1,9 +1,7 @@
 import logging
 import struct
 from ctypes import ArgumentError
-from functools import reduce
 
-from math import sin, cos, tan, atan2, sqrt, pi
 from time import sleep, time
 
 from qvibe.accelerometer import Accelerometer
@@ -29,7 +27,7 @@ class mpu6050(Accelerometer):
     MPU6050_ADDRESS = 0x68  # default I2C Address
 
     # bit masks for enabling the which sensors are written to the FIFO
-    enable_accelerometer_mask    = 0b00001000
+    enable_accelerometer_mask = 0b00001000
     enableGyroMask = 0b01110000
     enableTemperatureMask = 0b10000000
 
@@ -253,7 +251,6 @@ class mpu6050(Accelerometer):
         """
         super().__init__(fs, samples_per_batch, data_handler)
         self.name = name
-        self.__comp_filter = CompFilter(self.fs)
         self.fifo_sensor_mask = self.enable_accelerometer_mask
         self._accel_enabled = True
         self._gyro_enabled = False
@@ -523,7 +520,6 @@ class mpu6050(Accelerometer):
         sample_rate_denominator = int((8000 / min(target_fs, 1000)) - 1)
         self.i2c_io.write(self.MPU6050_ADDRESS, self.MPU6050_RA_SMPLRT_DIV, sample_rate_denominator)
         self.fs = 8000.0 / (sample_rate_denominator + 1.0)
-        self.reset_complementary_filter()
         logger.warning(f"Set sample rate = {self.fs}")
 
     def reset_fifo(self):
@@ -672,8 +668,7 @@ class mpu6050(Accelerometer):
         data = [None] * (2
                          + (3 if self.is_accelerometer_enabled() else 0)
                          + (1 if self.is_temperature_enabled() else 0)
-                         + (3 if self.is_gyro_enabled() else 0)
-                         + (3 if self.is_accelerometer_enabled() and self.is_gyro_enabled() else 0))
+                         + (3 if self.is_gyro_enabled() else 0))
         self.sample_idx = self.sample_idx + 1
         data[0] = self.sample_idx
         data[1] = self.time_zero
@@ -697,12 +692,6 @@ class mpu6050(Accelerometer):
             sensor_idx += 1
             data[sensor_idx + 2] = unpacked[sensor_idx] * self._gyro_factor
             sensor_idx += 1
-
-        if self.is_gyro_enabled() and self.is_accelerometer_enabled():
-            x, y, z = self.__comp_filter.accept(data[2:5], data[-6:-3])
-            data[sensor_idx + 2] = x
-            data[sensor_idx + 3] = y
-            data[sensor_idx + 4] = z
 
         return data
 
@@ -768,96 +757,3 @@ class mpu6050(Accelerometer):
             self.set_accelerometer_sensitivity(self.accelerometer_sensitivity)
             self.set_gyro_sensitivity(self.gyro_sensitivity)
             logger.info("<< selfTest")
-
-    def reset_complementary_filter(self):
-        '''
-        resets the complementary
-        '''
-        self.__comp_filter = CompFilter(self.fs)
-
-
-class CompFilter:
-    def __init__(self, fs):
-        self.fs = fs
-        self.__alpha = 0.1
-        self.__gyro_bias_input = []
-        self.__gyro_biases = [0.0] * 3
-        self.__phi_hat = 0.0
-        self.__theta_hat = 0.0
-        self.__y_hat = 0.0
-        self.__z_hat = 0.0
-
-    def __has_bias(self):
-        return len(self.__gyro_bias_input) == 200
-
-    def accept(self, acc, gy):
-        '''
-        Updates the filter with the new data, returns the computed cartesian coordinates.
-        :param acc: acceleration.
-        :param gy: gyro.
-        :return: filtered cartesian coordinates.
-        '''
-        if not self.__has_bias():
-            self.__gyro_bias_input.append(gy)
-            if self.__has_bias():
-                t = reduce(lambda a, b: (a[0] + b[0], a[1]+b[1], a[2]+b[2]), self.__gyro_bias_input)
-                self.__gyro_biases = [t[0] / 200, t[1] / 200, t[2] / 200]
-                logger.info(f"Recorded gyro biases {self.__gyro_biases}")
-            else:
-                logger.info(f"Recorded {len(self.__gyro_bias_input)} bias inputs")
-        if self.__has_bias():
-            self.__update_filter(acc, gy)
-        xyz = self.xyz()
-        logger.info(f"Filter [x: {round(xyz[0],3)}, y: {round(xyz[1], 3)}, z: {round(xyz[2], 3)}")
-        return xyz
-
-    @staticmethod
-    def __angular_acc(acc):
-        '''
-        :param acc: the accelerometer data
-        :return: phi, theta
-        '''
-        ax, ay, az = acc
-        phi = atan2(ay, sqrt(ax ** 2.0 + az ** 2.0))
-        theta = atan2(-ax, sqrt(ay ** 2.0 + az ** 2.0))
-        return [phi, theta]
-
-    def __update_filter(self, acc, gy):
-        '''
-        Updates the complementary
-        :param acc:
-        :param gy:
-        :return:
-        '''
-        phi_hat_acc, theta_hat_acc = self.__angular_acc(acc)
-        p, q, r = gy
-        bx, by, bz = self.__gyro_biases
-        p -= bx
-        q -= by
-        r -= bz
-        dt = 1.0 / self.fs
-
-        # Calculate Euler angle derivatives
-        phi_dot = p + sin(self.__phi_hat) * tan(self.__theta_hat) * q + cos(self.__phi_hat) * tan(self.__theta_hat) * r
-        theta_dot = cos(self.__phi_hat) * q - sin(self.__phi_hat) * r
-
-        # Update complimentary filter
-        self.__phi_hat = (1 - self.__alpha) * (self.__phi_hat + dt * phi_dot) + self.__alpha * phi_hat_acc
-        self.__theta_hat = (1 - self.__alpha) * (self.__theta_hat + dt * theta_dot) + self.__alpha * theta_hat_acc
-
-        logger.info(f"Acc [Phi: {round(phi_hat_acc * 180.0 / pi, 1)}, Theta: {round(theta_hat_acc * 180.0 / pi, 1)}]")
-        logger.info(f"Gryo [Phi: {round(phi_dot * 180.0 / pi, 1)}, Theta: {round(theta_dot * 180.0 / pi, 1)}")
-        logger.info(f"Filter [Phi: {round(self.__phi_hat * 180.0 / pi, 1)},  Theta: {round(self.__theta_hat * 180.0 / pi, 1)}]")
-        # calculate r
-        self.__r = sqrt((acc[0] ** 2) + (acc[1] ** 2) + (acc[2] ** 2))
-
-    def xyz(self):
-        '''
-        converts the filter to cartesian coordinates.
-        '''
-        if self.__has_bias():
-            x = self.__r * sin(self.__theta_hat) * cos(self.__phi_hat)
-            y = self.__r * sin(self.__theta_hat) * sin(self.__phi_hat)
-            z = self.__r * cos(self.__theta_hat)
-            return [x, y, z]
-        return [0.0] * 3
