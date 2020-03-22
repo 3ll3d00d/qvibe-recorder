@@ -699,7 +699,7 @@ class mpu6050(Accelerometer):
             sensor_idx += 1
 
         if self.is_gyro_enabled() and self.is_accelerometer_enabled():
-            x, y, z = self.__comp_filter.accept(data[0:3], data[-6:-3])
+            x, y, z = self.__comp_filter.accept(data[2:5], data[-6:-3])
             data[sensor_idx + 2] = x
             data[sensor_idx + 3] = y
             data[sensor_idx + 4] = z
