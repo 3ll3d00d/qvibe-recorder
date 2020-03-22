@@ -807,7 +807,9 @@ class CompFilter:
                 logger.info(f"Recorded {len(self.__gyro_bias_input)} bias inputs")
         if self.__has_bias():
             self.__update_filter(acc, gy)
-        return self.xyz()
+        xyz = self.xyz()
+        logger.info(f"Filter [x: {round(xyz[0],3)}, y: {round(xyz[1], 3)}, z: {round(xyz[2], 3)}")
+        return xyz
 
     @staticmethod
     def __angular_acc(acc):
@@ -843,7 +845,9 @@ class CompFilter:
         self.__phi_hat = (1 - self.__alpha) * (self.__phi_hat + dt * phi_dot) + self.__alpha * phi_hat_acc
         self.__theta_hat = (1 - self.__alpha) * (self.__theta_hat + dt * theta_dot) + self.__alpha * theta_hat_acc
 
-        logger.info(f"Updated filter, Phi: {round(self.__phi_hat * 180.0 / pi, 1)} | Theta: {round(self.__theta_hat * 180.0 / pi, 1)}")
+        logger.info(f"Acc [Phi: {round(phi_hat_acc * 180.0 / pi, 1)}, Theta: {round(theta_hat_acc * 180.0 / pi, 1)}]")
+        logger.info(f"Gryo [Phi: {round(phi_dot * 180.0 / pi, 1)}, Theta: {round(theta_dot * 180.0 / pi, 1)}")
+        logger.info(f"Filter [Phi: {round(self.__phi_hat * 180.0 / pi, 1)},  Theta: {round(self.__theta_hat * 180.0 / pi, 1)}]")
         # calculate r
         self.__r = sqrt((acc[0] ** 2) + (acc[1] ** 2) + (acc[2] ** 2))
 
